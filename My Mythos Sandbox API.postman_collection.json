@@ -1,0 +1,431 @@
+{
+  "info": {
+    "_postman_id": "aaf4ec78-d6dc-47ff-b5bb-623a7c22309d",
+    "name": "My Mythos Sandbox API 🏛️",
+    "description": "Интерактивная песочница для работы с мифологией Древней Греции.\n\n**Base URL:** `https://api.qasandbox.ru/api`\n\n---\n\n* **Обучение:** Освоить работу всех методов песочницы в Postman можно [на этом курсе](https://stepik.org/a/269008).\n* **Postman:** **[📥 Скачать JSON для импорта в Postman](https://api.qasandbox.ru/swagger.json)**\n\n---\n\n### 🛠 Особенности реализации:\n\n* **Auth:** Методы изменения (**POST**, **PUT**, **PATCH**, **DELETE**) требуют JWT-токен в заголовке `Authorization`.\n\n* **System Lock:** Персонажи с **ID 1–31** защищены. При попытке изменения сервер вернет ошибку `403 Forbidden`.\n\n* **Data Mapping:** В API используется поле `desc`. \n    * В базе данных оно хранится как `description`.\n\n* **Localization (EN):** В параметрах и поле `category` используются английские значения: \n    `gods`, `heroes`, `creatures`.\n",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "15178085",
+    "_collection_link": "https://go.postman.co/collection/15178085-aaf4ec78-d6dc-47ff-b5bb-623a7c22309d?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "login",
+      "item": [
+        {
+          "name": "Вход и получение токена",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();\r",
+                  "const token = jsonData.token || jsonData.access_token || jsonData.accessToken;\r",
+                  "\r",
+                  "if (token) {\r",
+                  "    pm.environment.set(\"token\", token);\r",
+                  "    pm.vault.set(\"token\", token).then(() => {\r",
+                  "        console.log(\"Токен успешно сохранён в Vault\");\r",
+                  "    }).catch((err) => {\r",
+                  "        console.error(\"Ошибка при сохранении токена в Vault:\", err);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    console.warn(\"Токен не найден в ответе\");\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{login}}\",\n  \"password\": \"{{vault:password}}\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Призвать новую сущность",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var response = pm.response.json();\r",
+                  "pm.collectionVariables.set(\"id\", response.id);\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{vault:token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Посейдон\",\n  \"category\": \"gods\",\n  \"desc\": \"Бог морей и землетрясений.\",\n  \"img\": \"https://images.unsplash.com/photo-1503152394-c571994fd383\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mythology",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mythology"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "mythology",
+      "item": [
+        {
+          "name": "{id}",
+          "item": [
+            {
+              "name": "Получить одну сущность по ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/mythology/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "mythology",
+                    "{{id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Полное обновление сущности",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Посейдон\",\n  \"category\": \"gods\",\n  \"desc\": \"Бог морей и землетрясений.\",\n  \"img\": \"https://images.unsplash.com/photo-1503152394-c571994fd383\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/mythology/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "mythology",
+                    "{{id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Частичное обновление сущности",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"string\",\n  \"category\": \"gods\",\n  \"desc\": \"string\",\n  \"img\": \"string\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/mythology/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "mythology",
+                    "{{id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Изгнать сущность",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{vault:token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/mythology/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "mythology",
+                    "{{id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ошибка метода для адреса с ID",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/mythology/{{id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "mythology",
+                    "{{id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Получить список всех сущностей",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mythology?category=all&sort=desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mythology"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "all"
+                },
+                {
+                  "key": "sort",
+                  "value": "desc"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{vault:token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{vault:token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "login",
+      "value": ""
+    },
+    {
+      "key": "baseUrl",
+      "value": ""
+    },
+    {
+      "key": "id",
+      "value": ""
+    }
+  ]
+}

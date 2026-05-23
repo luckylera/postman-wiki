@@ -1,0 +1,200 @@
+{
+  "info": {
+    "_postman_id": "aca2f4c3-fc46-42bf-a727-d38844939571",
+    "name": "[Flows] Weather",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "15178085",
+    "_collection_link": "https://go.postman.co/collection/15178085-aca2f4c3-fc46-42bf-a727-d38844939571?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Address geocoder",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "",
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response contains address data\", function () {",
+              "    pm.expect(response).to.be.an(\"array\").that.is.not.empty;",
+              "});",
+              "",
+              "const address = response[0];",
+              "",
+              "pm.environment.set(\"lat\", address.geo_lat);",
+              "pm.environment.set(\"long\", address.geo_lon);",
+              "pm.environment.set(\"timezone\", address.timezone);",
+              "",
+              "console.log(\"lat:\", address.geo_lat);",
+              "console.log(\"long:\", address.geo_lon);",
+              "console.log(\"timezone:\", address.timezone);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Secret",
+            "value": "{{vault:dadata-secret}}"
+          },
+          {
+            "key": "Authorization",
+            "value": "Token {{vault:dadata-api}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[ \"{{address}}\" ]",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://cleaner.dadata.ru/api/v1/clean/address",
+          "protocol": "https",
+          "host": [
+            "cleaner",
+            "dadata",
+            "ru"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "clean",
+            "address"
+          ]
+        },
+        "description": "Generated from cURL: curl -X POST \\\r\n  -H \"Content-Type: application/json\" \\\r\n  -H \"Accept: application/json\" \\\r\n  -H \"Authorization: Token 604d133ac63e65bc518fa0edb4300deeab7fa9fd\" \\\r\n  -H \"X-Secret: e10bd4222f7ad92918c7dc2d26af82c7b280ab9f\" \\\r\n  -d '[ \"москва сухонская 11\" ]' \\\r\n  https://cleaner.dadata.ru/api/v1/clean/address"
+      },
+      "response": []
+    },
+    {
+      "name": "Forecast",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://api.open-meteo.com/v1/forecast?latitude={{lat}}&longitude={{long}}&daily=temperature_2m_max&daily=temperature_2m_min&daily=windspeed_10m_max&temperature_unit=celsius",
+          "protocol": "https",
+          "host": [
+            "api",
+            "open-meteo",
+            "com"
+          ],
+          "path": [
+            "v1",
+            "forecast"
+          ],
+          "query": [
+            {
+              "key": "latitude",
+              "value": "{{lat}}"
+            },
+            {
+              "key": "longitude",
+              "value": "{{long}}"
+            },
+            {
+              "key": "daily",
+              "value": "temperature_2m_max"
+            },
+            {
+              "key": "daily",
+              "value": "temperature_2m_min",
+              "type": "text"
+            },
+            {
+              "key": "daily",
+              "value": "windspeed_10m_max",
+              "type": "text"
+            },
+            {
+              "key": "temperature_unit",
+              "value": "celsius",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "address",
+      "value": ""
+    },
+    {
+      "key": "lat",
+      "value": ""
+    },
+    {
+      "key": "lon",
+      "value": ""
+    },
+    {
+      "key": "timezone",
+      "value": ""
+    }
+  ]
+}

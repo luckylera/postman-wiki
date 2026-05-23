@@ -1,0 +1,300 @@
+{
+  "info": {
+    "_postman_id": "c5061fed-e5c8-4802-995c-9a18a081ca2e",
+    "name": "[Flows] Shop",
+    "description": "Эта коллекция охватывает основные операции управления товарами для Shop API (shop.bugred.ru). Она предоставляет полный набор CRUD-эндпоинтов для работы с каталогом товаров магазина:\n\n- **Создать новый товар** — Добавить новый товар в каталог (`POST /api/items/create/`)\n    \n- **Получить информацию о товаре** — Получить детали конкретного товара (`GET /api/items/get/`)\n    \n- **Обновить товар** — Изменить данные существующего товара (`PUT /api/items/update/`)\n    \n- **Удалить товар** — Удалить товар из каталога (`DELETE /api/items/delete/`)\n    \n- **Тест поиска с созданием и удалением данных** — Проверить функциональность поиска сквозным способом: создание, поиск и очистка тестовых данных (`POST /api/items/search/`)\n    \n\nИспользуйте переменную окружения `{{url}}` для указания целевого окружения. Коллекция подходит как для ручного исследовательского тестирования, так и для автоматизированных регрессионных прогонов.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "15178085",
+    "_collection_link": "https://go.postman.co/collection/15178085-c5061fed-e5c8-4802-995c-9a18a081ca2e?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Create new item",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Response must be valid and have a body\", function () {\r",
+              "     pm.response.to.be.ok;\r",
+              "     pm.response.to.be.withBody;\r",
+              "     pm.response.to.be.json; \r",
+              "});\r",
+              "\r",
+              "var response = pm.response.json();\r",
+              "\r",
+              "pm.environment.set(\"item_id\", response.result.id);\r",
+              "pm.environment.set(\"section\", response.result.section);\r",
+              "pm.environment.set(\"color\", response.result.color);\r",
+              "pm.environment.set(\"size\", response.result.size);\r",
+              "pm.environment.set(\"price\", response.result.price);\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "//создаем функцию-рандомайзер\r",
+              "const randomInteger = (min, max) => {\r",
+              "  let rand = min + Math.random() * (max + 1 - min);\r",
+              "  return Math.floor(rand);\r",
+              "}\r",
+              "\r",
+              "//создаем функцию для рандомного выбора из списка категорий и записи в переменную коллекции\r",
+              "const setSection = () => {\r",
+              "    const sectionList = ['Платья', 'Шорты', 'Верхняя одежда', 'Рубашки', 'Брюки', 'Футболки',  'Категория 1', 'Категория 2', 'Категория 3', 'Категория 4', 'Test', '\\(O_o)/'];\r",
+              "    const section = sectionList[require('lodash').random(0, sectionList.length-1)]\r",
+              "    pm.collectionVariables.set(\"section\", section);\r",
+              "}\r",
+              "\r",
+              "//создаем функцию для рандомного выбора из списка цветов и записи в переменную коллекции\r",
+              "const setColor = () => {\r",
+              "    const colorList = ['Черный', 'Красный', 'Синий', 'Белый', 'Фиолетовый', 'RED',  'ORANGE', 'BLUE', 'GREEN', 'Коричневый'];\r",
+              "    const color = colorList[randomInteger(0, colorList.length-1)]\r",
+              "    pm.collectionVariables.set(\"color\", color);\r",
+              "}\r",
+              "\r",
+              "//создаем функцию для рандомного заполнения цены и записи в переменную коллекции\r",
+              "const setPrice = () => {\r",
+              "    const price = randomInteger(0,9999);\r",
+              "    pm.collectionVariables.set(\"price\", price);\r",
+              "}\r",
+              "\r",
+              "//вызываем созданные функции и заполняем переменные коллекции, которые будем использовать в теле запроса\r",
+              "setSection();\r",
+              "setColor();\r",
+              "setPrice();\r",
+              "\r",
+              "\r",
+              "/*\r",
+              "создаем функцию shuffle, которая переупорядочит массив случайным образом\r",
+              "идем справа налево, берем i элемент справа (н-р, i=12), выбираем рандомный элемен слева (j), меняем местами i and j. Затем берем i=11 -> повторяем. \r",
+              "больше информации про реализацию shuffle: https://learn.javascript.ru/task/shuffle\r",
+              "*/\r",
+              "function shuffle(array) {\r",
+              "  for (let i = array.length - 1; i > 0; i--) {\r",
+              "    let j = Math.floor(Math.random() * (i + 1));\r",
+              "    [array[i], array[j]] = [array[j], array[i]];\r",
+              "  }\r",
+              "  return array;\r",
+              "};\r",
+              "\r",
+              "/*\r",
+              "создаем функцию generateDescription для генерации строки с использованием строковых, заглавных букв и символов\r",
+              "Таким же образом может быть сгенерирован пароль с учетом определнных требований к безопасности (строковые + заглавные буквы и числа или спец. символы)\r",
+              "*/\r",
+              "function generateDescription(descriptionLength) {\r",
+              "  var numberChars = \"0123456789-+._!@#$%&§*()~<>\";\r",
+              "  var upperChars = \"ABCDEFGHIJKLMNOPQRSTUVWXYZ\";\r",
+              "  var lowerChars = \"abcdefghijklmnopqrstuvwxyz\";\r",
+              "  var allChars = numberChars + upperChars + lowerChars;\r",
+              "  var randDescriptionArray = Array(descriptionLength);\r",
+              "  //заполняем массив, устанавливаем 1,2 и 3 элементы\r",
+              "  randDescriptionArray[0] = numberChars;\r",
+              "  randDescriptionArray[1] = upperChars;\r",
+              "  randDescriptionArray[2] = lowerChars;\r",
+              "  //устанавливаем следующие элеметы\r",
+              "  randDescriptionArray = randDescriptionArray.fill(allChars, 3);\r",
+              "  /*\r",
+              "  Метод map() создает новый массив, заполненный результатами вызова заданной функции на каждом элементе вызывающего массива.\r",
+              "  Возьмем элемент x (например, x[0]), вернем из него только 1 символ (например, \"f\") => каждый из 12 элементов \"пожертвует\" 1 случайный символ (если длина 12 символов).\r",
+              "  Соединяем элементы массива с помощью .join('')\r",
+              "  С помощью метода shuffle, который мы прописали выше, переупорядочим символы в строке.\r",
+              "  */\r",
+              "  return shuffle(randDescriptionArray.map(function(x) { return x[Math.floor(Math.random() * x.length)] })).join('');\r",
+              "};\r",
+              "\r",
+              "pm.collectionVariables.set(\"randomDescription\",generateDescription(64));\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\"name\": \"{{$randomProduct}}\",\r\n\"section\": \"{{section}}\",\r\n\"description\": \"{{randomDescription}}\",\r\n\"color\": \"{{color}}\",\r\n\"size\": \"{{size}}\",\r\n\"price\": \"{{price}}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/api/items/create/",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "api",
+            "items",
+            "create",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get item's info",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"id\" : {{item_id}}\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/api/items/get/",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "api",
+            "items",
+            "get",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update item",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\"id\": \"{{item_id}}\",\r\n\"name\": \"{{$randomProduct}}\",\r\n\"section\": \"{{section}}\",\r\n\"description\": \"{{randomDescription}}\",\r\n\"color\": \"{{color}}\",\r\n\"size\": \"{{size}}\",\r\n\"price\": \"{{price}}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/api/items/update/",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "api",
+            "items",
+            "update",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete item",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"id\" : {{item_id}}\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/api/items/delete/",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "api",
+            "items",
+            "delete",
+            ""
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "requests": {},
+        "exec": [
+          "pm.test(\"Status code is 200\", function () {\r",
+          "    pm.response.to.have.status(200);\r",
+          "});"
+        ]
+      }
+    }
+  ]
+}
